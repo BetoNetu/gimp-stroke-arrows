@@ -1,0 +1,202 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2026-10-11 15:49+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: pl_stroke_arrows.py:185
+msgid "Stroke arrows ..."
+msgstr ""
+
+#: pl_stroke_arrows.py:190
+msgid "Stroke arrows from path"
+msgstr ""
+
+#: pl_stroke_arrows.py:191
+msgid "Stroke one or several arrows from user created paths"
+msgstr ""
+
+#: pl_stroke_arrows.py:197 pl_stroke_arrows.py:198
+msgid "Create new layer"
+msgstr ""
+
+#: pl_stroke_arrows.py:200
+msgid "foreground color"
+msgstr ""
+
+#: pl_stroke_arrows.py:201
+msgid "black"
+msgstr ""
+
+#: pl_stroke_arrows.py:202
+msgid "Arrow color"
+msgstr ""
+
+#: pl_stroke_arrows.py:205 pl_stroke_arrows.py:232
+msgid "filled"
+msgstr ""
+
+#: pl_stroke_arrows.py:206 pl_stroke_arrows.py:233
+msgid "empty"
+msgstr ""
+
+#: pl_stroke_arrows.py:207 pl_stroke_arrows.py:235
+msgid "simple"
+msgstr ""
+
+#: pl_stroke_arrows.py:208
+msgid "Arrowhead style"
+msgstr ""
+
+#: pl_stroke_arrows.py:210
+msgid "Wing length (px)"
+msgstr ""
+
+#: pl_stroke_arrows.py:211
+msgid "Length of the wing (px)"
+msgstr ""
+
+#: pl_stroke_arrows.py:213 pl_stroke_arrows.py:214
+msgid "Tip angle (°)"
+msgstr ""
+
+#: pl_stroke_arrows.py:216
+msgid "Shape"
+msgstr ""
+
+#: pl_stroke_arrows.py:217
+msgid "positive: harpoon / negative: diamond"
+msgstr ""
+
+#: pl_stroke_arrows.py:219 pl_stroke_arrows.py:220
+msgid "Stroke width (px)"
+msgstr ""
+
+#: pl_stroke_arrows.py:223
+msgid "none"
+msgstr ""
+
+#: pl_stroke_arrows.py:224
+msgid "bar"
+msgstr ""
+
+#: pl_stroke_arrows.py:225
+msgid "bullet"
+msgstr ""
+
+#: pl_stroke_arrows.py:226
+msgid "feather"
+msgstr ""
+
+#: pl_stroke_arrows.py:227
+msgid "two-way arrow"
+msgstr ""
+
+#: pl_stroke_arrows.py:228
+msgid "Tail type"
+msgstr ""
+
+#: pl_stroke_arrows.py:231
+msgid "same as arrowhead"
+msgstr ""
+
+#: pl_stroke_arrows.py:234
+msgid "empty variant"
+msgstr ""
+
+#: pl_stroke_arrows.py:236
+msgid "simple variant"
+msgstr ""
+
+#: pl_stroke_arrows.py:237
+msgid "Tail style"
+msgstr ""
+
+#: pl_stroke_arrows.py:239
+msgid "Tail width unit relative (%)"
+msgstr ""
+
+#: pl_stroke_arrows.py:240
+msgid "Tail width relative to arrowhead, otherwise value in pixels"
+msgstr ""
+
+#: pl_stroke_arrows.py:241 pl_stroke_arrows.py:242
+msgid "Tail width"
+msgstr ""
+
+#: pl_stroke_arrows.py:244 pl_stroke_arrows.py:245
+msgid "Draw arrowheads"
+msgstr ""
+
+#: pl_stroke_arrows.py:246 pl_stroke_arrows.py:247
+msgid "Draw shafts"
+msgstr ""
+
+#: pl_stroke_arrows.py:248 pl_stroke_arrows.py:249
+msgid "Draw tails"
+msgstr ""
+
+#: pl_stroke_arrows.py:250
+msgid "Flip paths direction"
+msgstr ""
+
+#: pl_stroke_arrows.py:251
+msgid "Make the arrows point backwards"
+msgstr ""
+
+#: pl_stroke_arrows.py:252
+msgid "Keep arrow parts (as paths)"
+msgstr ""
+
+#: pl_stroke_arrows.py:253
+msgid "Add heads, shafts and tails paths created by the plugin"
+msgstr ""
+
+#: pl_stroke_arrows.py:254
+msgid "Delete selected paths"
+msgstr ""
+
+#: pl_stroke_arrows.py:255
+msgid "Delete or keep original selected paths"
+msgstr ""
+
+#: pl_stroke_arrows.py:411
+msgid "Arrow #1"
+msgstr ""
+
+#: pl_stroke_arrows.py:419
+msgid "Procedure '{}' only works with one drawable."
+msgstr ""
+
+#: pl_stroke_arrows.py:436
+msgid "Procedure '{}' needs at least one path"
+msgstr ""
+
+#: pl_stroke_arrows.py:512
+msgid "Procedure '{}': Paths must have at least one complete stroke"
+msgstr ""
+
+#: pl_stroke_arrows.py:674
+msgid "body path #1"
+msgstr ""
+
+#: pl_stroke_arrows.py:852 pl_stroke_arrows.py:878
+msgid "arrow head #1"
+msgstr ""
+
+#: pl_stroke_arrows.py:912 pl_stroke_arrows.py:926 pl_stroke_arrows.py:991
+#: pl_stroke_arrows.py:1008
+msgid "arrow tail #1"
+msgstr ""
+
