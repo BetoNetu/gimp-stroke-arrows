@@ -1,0 +1,140 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2025-12-07 14:23+0100\n"
+"PO-Revision-Date: 2025-12-10 10:19+0100\n"
+"Last-Translator: N. N. <@>\n"
+"Language-Team: \n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 3.4.2\n"
+
+msgid "Stroke arrows ..."
+msgstr "Als Pfeile nachziehen …"
+
+msgid "Stroke arrows from path"
+msgstr "Strichpfeile vom Pfad"
+
+msgid "Stroke one or several arrows from user created paths"
+msgstr "Einen oder mehrere Pfeile aus benutzerdefinierten Pfaden zeichnen"
+
+msgid "foreground color"
+msgstr "Vordergrundfarbe"
+
+msgid "black"
+msgstr "Schwarz"
+
+msgid "Color"
+msgstr "Farbe"
+
+msgid "filled"
+msgstr "gefüllt"
+
+msgid "empty"
+msgstr "leer"
+
+msgid "simple"
+msgstr "einfach"
+
+msgid "Arrowhead style"
+msgstr "Pfeilspitzenstil"
+
+msgid "Wing length (px)"
+msgstr "Flügellänge (px)"
+
+msgid "Length of the wing (px)"
+msgstr "Länge des Flügels (px)"
+
+msgid "Tip angle (°)"
+msgstr "Spitzenwinkel (°)"
+
+msgid "Shape (-◆ | ➤+)"
+msgstr "Form (-◆ | ➤+)"
+
+msgid "positive: harpoon / negative: diamond"
+msgstr "positiv: Harpune / negativ: Diamant"
+
+msgid "Stroke width (px)"
+msgstr "Strichbreite (px)"
+
+msgid "none"
+msgstr "keiner"
+
+msgid "bar"
+msgstr "Linie"
+
+msgid "bullet"
+msgstr "Aufzählungszeichen"
+
+msgid "feather"
+msgstr "ausblenden"
+
+msgid "two-way arrow"
+msgstr "Zwei-Wege-Pfeil"
+
+msgid "Tail type"
+msgstr "Schwanztyp"
+
+msgid "same as arrowhead"
+msgstr "gleich wie die Pfeilspitze"
+
+msgid "Tail style"
+msgstr "Schwanzstil"
+
+msgid "Tail width"
+msgstr "Schwanzbreite"
+
+msgid "Tail width unit relative (%)"
+msgstr "Schwanzbreiteneinheit relativ (%)"
+
+msgid "Tail width relative to arrowhead, otherwise value in pixels"
+msgstr "Schwanzbreite relativ zur Pfeilspitze, ansonsten Wert in Pixel"
+
+msgid "Create new layer"
+msgstr "Neue Ebene erstellen"
+
+msgid "Flip path direction"
+msgstr "Pfadrichtung umkehren"
+
+msgid "Flip the arrow direction"
+msgstr "Die Pfeilrichtung umdrehen"
+
+msgid "Remove shaft, draw head"
+msgstr "Schaft entfernen, Kopf zeichnen"
+
+msgid "Remove shaft, draw arrowhead"
+msgstr "Schaft entfernen, Pfeilspitze zeichnen"
+
+msgid "Remove shaft, draw tail"
+msgstr "Schaft entfernen, Schwanz zeichnen"
+
+msgid "Keep newly created paths"
+msgstr "Neu erstellte Pfade behalten"
+
+msgid "Arrow #1"
+msgstr "Pfeil #1"
+
+msgid "Procedure '{}' only works with one drawable."
+msgstr "Die Prozedur „{}“ funktioniert nur mit einem Zeichenelement."
+
+msgid "Procedure '{}' needs at least one path"
+msgstr "Die Prozedur „{}“ benötigt mindestens einen Pfad"
+
+msgid "Paths must have at least one stroke"
+msgstr "Pfade müssen mindestens einen Strich haben"
+
+msgid "The last point of this path is not connected"
+msgstr "Der letzte Punkt dieses Pfades ist nicht verbunden"
+
+msgid "body path #1"
+msgstr "Körperpfad # 1"
+
+msgid "arrow head #1"
+msgstr "Pfeilspitze #1"
+
+msgid "arrow tail #1"
+msgstr "Pfeilschwanz #1"
