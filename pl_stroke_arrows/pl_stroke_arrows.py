@@ -4,7 +4,7 @@
 # Stroke arrows from one or more selected paths
 #
 # Original author : Pascal Lachat
-# Version 0.8 for GIMP 3.0
+# Version 0.9 for GIMP 3.0
 
 # ------------------
 
@@ -68,7 +68,7 @@
 # 0.6 :
 # - revrote code for cutting the spline. Now takes the full spline into account, does 
 #    a simple iterative sum of tiny distances, replacing the API call which does not 
-#   provide the t parameter and required an additional iterative search.
+#    provide the t parameter and required an additional iterative search.
 # - the above corrected a bug when 3 or more segments where inside the arrowhead
 # - initial restructuring of the code.
 # - enhanced junction of arrowhead and body placement by decoupling anchor point and  
@@ -105,12 +105,23 @@
 # - minor UI adjustments
 # - added paths right-click menu entry
 # - corrected dialog box registration
+#
+# 0.9 :
+# - added german and brazilian contributed translations
+# - now takes all strokes on a same path into account (user request)
+# - added option to keep or delete user created paths (user request)
+# - reshaped the filed and empty feather tails, and better parametrization
+# - introduced variants for empty and simple feather tails; now empty tail is really empty
+# - bug with vertical arrows corrected, replaced all atan with atan2
+# - added checkbox to draw each element, replaces "Draw head only" and "draw tail only"
+# - reordering and renaming of some dialog parameters
 
 #
 # To do
 # -----
 # - bug: in some cases undo still un-selects the active layer (create layer unchecked)
 # - visual issue with plain arrowheads and very large stroke
+# - allow larger stroke width (currently 50)
 # - correct bullet position according to the tangent at contact, and straight line for simple
 # - select drawn / not drawn for each element
 # - examine visual bug with very short path and reversed-arrow tail (use the whole path 
@@ -125,7 +136,8 @@
 # - structure code of main routine  >> better for now, still work to do
 # - find a way to smooth curve to tangent junction
 # - simpler, non interactive version? (arrowhead size determined by last anchor?)
-# - add vector layers output option for GIMP 3.2 
+# - vector layers output option for GIMP 3.2
+# - outlined arrow option (mabe once the vector layers are implemented)
 
 
 #*************************************************************************************
@@ -182,10 +194,12 @@ class strokeArrows (Gimp.PlugIn):
 
         # dialog box parameters
         # ---------------------
+        procedure.add_boolean_argument("createLayer", _("Create new layer"),
+                                    _("Create new layer"), True, GObject.ParamFlags.READWRITE)
         choice = Gimp.Choice.new()
         choice.add("foreground", 0, _("foreground color"), "")
         choice.add("black", 1, _("black"), "")
-        procedure.add_choice_argument("arrowsColor", _("Color"), _("Color"),
+        procedure.add_choice_argument("arrowsColor", _("Arrow color"), _("Arrow color"),
                                        choice, "foreground", GObject.ParamFlags.READWRITE)
         choice = Gimp.Choice.new()
         choice.add("filled", 0, _("filled"), "")
@@ -199,7 +213,7 @@ class strokeArrows (Gimp.PlugIn):
         procedure.add_double_argument("tipAngle", _("Tip angle (°)"),
                                     _("Tip angle (°)"),
                                     10.0, 120.0, 35.0, GObject.ParamFlags.READWRITE)
-        procedure.add_double_argument("harpoonFactor", _("Shape (-◆ | ➤+)"),
+        procedure.add_double_argument("harpoonFactor", _("Shape") + " (-◆ | ➤+)",
                                     _("positive: harpoon / negative: diamond"),
                                     -10.0, 5.0, 0.0, GObject.ParamFlags.READWRITE)
         procedure.add_double_argument("strokeWidth", _("Stroke width (px)"),
@@ -217,24 +231,28 @@ class strokeArrows (Gimp.PlugIn):
         choice.add("default", 0, _("same as arrowhead"), "")
         choice.add("filled", 1, _("filled"), "")
         choice.add("empty", 2, _("empty"), "")
+        choice.add("empty_variant", 2, _("empty variant"), "")
         choice.add("simple",  3, _("simple"), "")
+        choice.add("simple_variant",  3, _("simple variant"), "")
         procedure.add_choice_argument("tailStyle", _("Tail style"), _("Tail style"),
                                        choice, "default", GObject.ParamFlags.READWRITE)
-        procedure.add_double_argument("tailSize", _("Tail width"),
-                                    _("Tail width"),
-                                    2.0, 500.0, 80.0, GObject.ParamFlags.READWRITE)
         procedure.add_boolean_argument("tailUnitRelative", _("Tail width unit relative (%)"),
                                     _("Tail width relative to arrowhead, otherwise value in pixels"), True, GObject.ParamFlags.READWRITE)
-        procedure.add_boolean_argument("createLayer", _("Create new layer"),
-                                    _("Create new layer"), True, GObject.ParamFlags.READWRITE)
-        procedure.add_boolean_argument("invertPath", _("Flip path direction"),
-                                    _("Flip the arrow direction"), False, GObject.ParamFlags.READWRITE)
-        procedure.add_boolean_argument("arrowHeadOnly", _("Remove shaft, draw head"),
-                                    _("Remove shaft, draw arrowhead"), False, GObject.ParamFlags.READWRITE)
-        procedure.add_boolean_argument("arrowTailOnly", _("Remove shaft, draw tail"),
-                                    _("Remove shaft, draw tail"), False, GObject.ParamFlags.READWRITE)
-        procedure.add_boolean_argument("keepPaths", _("Keep newly created paths"),
-                                    _("Keep newly created paths"), False, GObject.ParamFlags.READWRITE)
+        procedure.add_double_argument("tailSize", "\t" + _("Tail width"),
+                                    _("Tail width"),
+                                    2.0, 500.0, 80.0, GObject.ParamFlags.READWRITE)
+        procedure.add_boolean_argument("drawHead", _("Draw arrowheads"),
+                                    _("Draw arrowheads"), True, GObject.ParamFlags.READWRITE)
+        procedure.add_boolean_argument("drawShaft", _("Draw shafts"),
+                                    _("Draw shafts"), True, GObject.ParamFlags.READWRITE)
+        procedure.add_boolean_argument("drawTail", _("Draw tails"),
+                                    _("Draw tails"), True, GObject.ParamFlags.READWRITE)
+        procedure.add_boolean_argument("invertPath", _("Flip paths direction"),
+                                    _("Make the arrows point backwards"), False, GObject.ParamFlags.READWRITE)
+        procedure.add_boolean_argument("keepPaths", _("Keep arrow parts (as paths)"),
+                                    _("Add heads, shafts and tails paths created by the plugin"), False, GObject.ParamFlags.READWRITE)
+        procedure.add_boolean_argument("deleteUserPaths", _("Delete selected paths"),
+                                    _("Delete or keep original selected paths"), False, GObject.ParamFlags.READWRITE)
 
         return procedure
 
@@ -242,14 +260,14 @@ class strokeArrows (Gimp.PlugIn):
 #*************************************************************************************
 
 
-# main routine
+# main function
 #--------------
 
 def drawArrows(procedure, run_mode, monImage, drawables, config, data):
     
-    
+    # ***********
     # user dialog
-    # ************
+    # ***********
     
     if run_mode == Gimp.RunMode.INTERACTIVE:
         GimpUi.init('pl_stroke_arrows') # nom du fichier
@@ -265,47 +283,51 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
     # parameters list for user dialog
     # -------------------------------
     
+    createLayer     = config.get_property("createLayer")
     arrowsColor     = config.get_property("arrowsColor")
     arrowStyle      = config.get_property("arrowStyle")
-    strokeWidth     = config.get_property("strokeWidth")
     wingLen         = config.get_property("wingLen")
     tipAngle        = config.get_property("tipAngle")
     harpoonFactor   = config.get_property("harpoonFactor")
+    strokeWidth     = config.get_property("strokeWidth")
     tailType        = config.get_property("tailType")
     tailStyle       = config.get_property("tailStyle")
-    tailSize        = config.get_property("tailSize")
     tailUnitRelative = config.get_property("tailUnitRelative")
-    createLayer     = config.get_property("createLayer")
-    arrowHeadOnly   = config.get_property("arrowHeadOnly")
-    arrowTailOnly   = config.get_property("arrowTailOnly")
+    tailSize        = config.get_property("tailSize")
+    drawHead        = config.get_property("drawHead")
+    drawShaft       = config.get_property("drawShaft")
+    drawTail        = config.get_property("drawTail")
     invertPath      = config.get_property("invertPath")
     keepPaths       = config.get_property("keepPaths")
+    deleteUserPaths = config.get_property("deleteUserPaths")
 
     # user dialog variables (for testing)
     # -----------------------------------
-    # arrowsColor     = "black"
+    # createLayer     = True
+    # arrowsColor     = "foreground"
     # arrowStyle      = "filled" # "filled", "empty", "simple"
-    # strokeWidth     =  4.0
     # wingLen         = 40.0
     # tipAngle        = 35.0 # deg
-    # harpoonFactor   =  2.0 # 0.0 - ~6.0 : harpoon / 0.0: flat / 0.0 - -10.0 : diamond
+    # harpoonFactor   =  0.0 # 0.0 - ~6.0 : harpoon / 0.0: flat / 0.0 - -10.0 : diamond
+    # strokeWidth     =  4.0
     # tailType        = "none"
     # tailStyle       = "default"
-    # tailSize        = 20.0
     # tailUnitRelative = True
-    # createLayer     = True
+    # tailSize        = 80.0
+    # drawHead        = True
+    # drawShaft       = True
+    # drawTail        = True
     # invertPath      = False
-    # arrowHeadOnly   = False
-    # arrowTailOnly   = False
     # keepPaths       = False
+    # deleteUserPaths = False
     
+    # ****************
     # Undo and context
     # ****************
     
     monImage.undo_group_start()
     Gimp.context_push()
-    
-    # Gimp.context_set_defaults()
+    monImage.freeze_paths()
     
     if arrowsColor == "black" :
         Gimp.context_set_foreground(Gimp.color_parse_name("black"))
@@ -319,6 +341,7 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
     Gimp.context_set_stroke_method(0)   # LINE
     Gimp.context_set_line_miter_limit(100.0) # max value accepted by GIMP: 100.0
     
+    # ***************
     # Initialisations
     # ***************
     
@@ -331,6 +354,19 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
     
     if tailStyle == "default" :
         tailStyle = arrowStyle
+    # end if
+    
+    tailVariant = False
+    if tailStyle == "empty_variant" :
+        tailStyle = "empty"
+        tailVariant = True
+    elif tailStyle == "simple_variant":
+        tailStyle = "simple"
+        tailVariant = True
+    # end if
+    
+    if drawHead == False and drawShaft == False and drawTail == False :
+        createLayer = False
     # end if
     
     tipAngle            = math.radians(tipAngle)       # convert from user friendly
@@ -390,18 +426,10 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
             
     # end if
     
-    #*********************************************************************************
-    
-    #***********
-    # Main code
-    #***********
-    
-    # accumulatedCalcTime = 0 # debug
-    
     userPaths = monImage.get_selected_paths()
     
-    # no path selected
     if userPaths == [] :
+    # no path selected
         
         Gimp.context_pop()
         monImage.undo_group_end()
@@ -410,8 +438,12 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
         return procedure.new_return_values(Gimp.PDBStatusType.CALLING_ERROR, error)
     # end if
     
-    #--------------------------
-        
+    #*********************************************************************************
+    
+
+    # Initial calculations
+    # ********************
+    
     wingLength = arrowLength / math.cos( tipAngle / 2.0 )
     axisLength = harpoonFactor * arrowLength
     # find anchor placement of the head, curve cut point must not be past harpThreshold * arrowLength
@@ -440,40 +472,53 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
         
     #end if
     
+    #*********************************************************************************
     
     
-    # MAIN LOOP - work on each selected path successively
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # get all valid strokes
+    # *********************
+    
+    flatStrokes = []
     
     for thisPath in userPaths :
         
-        # time1 = time.perf_counter() # debug
+        pathStrokes = thisPath.get_strokes()
+        strokeCount = len(pathStrokes)
+        i = 1
         
-        # get last stroke and error handling
-        # ----------------------------------
-        
-        allStrokes = thisPath.get_strokes()
-        
-        if allStrokes == [] :
-            Gimp.context_pop()
-            monImage.undo_group_end()
-            msg = _("Paths must have at least one stroke").format(procedure.get_name())
-            error = GLib.Error.new_literal(Gimp.PlugIn.error_quark(), msg, 0)
-            return procedure.new_return_values(Gimp.PDBStatusType.CALLING_ERROR, error)
+        while i <= strokeCount :
+            # get the stroke in GIMP format
+            thisStroke = thisPath.stroke_get_points(i)[1]
+            
+            if len(thisStroke) > 6 :
+                # only if the stroke contains more than one point
+                
+                flatStrokes.append(thisStroke)
+                
+            # end if
+            
+            i+= 1
+        # end while i
+    
+        if deleteUserPaths == True :
+            monImage.remove_path(thisPath)
         # end if
+    
+    # end for thisPath
+    
+    if flatStrokes == [] :
+        Gimp.context_pop()
+        monImage.undo_group_end()
+        msg = _("Procedure '{}': Paths must have at least one complete stroke").format(procedure.get_name())
+        error = GLib.Error.new_literal(Gimp.PlugIn.error_quark(), msg, 0)
+        return procedure.new_return_values(Gimp.PDBStatusType.CALLING_ERROR, error)
+    # end if
+    
+    
+    # MAIN LOOP - work on each stroke successively
+    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         
-        thisStroke = allStrokes[-1]
-        
-        # get the path in GIMP format
-        flatPointsList = thisPath.stroke_get_points(thisStroke)[1]
-        
-        if len(flatPointsList) == 6 :
-            Gimp.context_pop()
-            monImage.undo_group_end()
-            msg = _("The last point of this path is not connected").format(procedure.get_name())
-            error = GLib.Error.new_literal(Gimp.PlugIn.error_quark(), msg, 0)
-            return procedure.new_return_values(Gimp.PDBStatusType.CALLING_ERROR, error)
-        # end if
+    for flatPointsList in flatStrokes :
         
         # convert coords list to points list
         pointsList = listToPoints(flatPointsList)
@@ -508,10 +553,7 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
                 # print(tempPoints) # debug
             # end if
             
-            tailAngle = math.atan( ( endY - tanY ) / ( endX - tanX ) )
-            if endX - tanX < 0.0 :
-                tailAngle += math.pi # invert from atan result
-            # end if
+            tailAngle = math.atan2( endY - tanY, endX - tanX )
             
             tailPath = buildCrossbar(monImage, endX, endY, tailAngle, tailSize)
         
@@ -533,43 +575,63 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
         # feathered
         elif tailType == "feathered" and ( tailStyle == "filled" or tailStyle == "empty" ) :
             
+            # configurable variables
+            tailLengthFactor = 1.10               # 1.10
+            tailWidthFactor = 0.48                # 0.48
+            tailWingAngle = 40.0 / 180.0 *math.pi # 40.0
+            tailBackAngle = 55.0 / 180.0 *math.pi # 55.0
+            
+            tailLength = tailLengthFactor * tailSize
+            
             reversdPointsList = newPointsList.copy()
             reversdPointsList.reverse()
-            newPointsList, tailSize, tailCutDistance = shortenSpline(reversdPointsList, tailSize, 0.0, 0.0, deltaT)
+            newPointsList, tailLength, tailCutDistance = shortenSpline(reversdPointsList, tailLength, 0.0, 0.0, deltaT)
+            
+            # half the width :
+            tailWidth = tailWidthFactor * tailLength / tailLengthFactor # must calculate from length in case it is changed
+            
+            tailWingLength = tailWidth / math.sin(tailWingAngle)
+            tailBackLength = tailWidth / math.sin(tailBackAngle)
+            tailSideLength = tailLength - math.cos(tailWingAngle) * tailWingLength + math.cos(tailBackAngle) * tailBackLength
             
             cutX, cutY = newPointsList[-1]
             tanX, tanY = newPointsList[-2]
             
-            tailAngle = math.atan( ( cutY - tanY ) / ( cutX - tanX ) )
-            if cutX - tanX < 0.0 :
-                tailAngle += math.pi # invert from atan result
-            # end if
+            tailAngle = math.atan2( cutY - tanY, cutX - tanX )
             
-            newPointsList = buildPatch(newPointsList, tailSize, cutX, cutY, tailAngle)
-            tailPath = buildFeather(monImage, tailSize, cutX, cutY, tailAngle)
+            if tailVariant == True or tailStyle == "filled" :
+                newPointsList = buildPatch(newPointsList, tailLength, cutX, cutY, tailAngle)
+            
+            # print(tailAngle, tailLength, tailWingAngle, tailWingLength, tailSideLength) # debug
+            
+            tailPath = buildFeather(monImage, cutX, cutY, tailAngle, tailLength, tailWingAngle, tailWingLength, tailSideLength)
             newPointsList.reverse()
             
         # simple feather
         elif tailType == "feathered" and tailStyle == "simple" :
             
+            if tailVariant == True :
+                n               = 3 # number of wings (2 - 5)
+                clearSegments   = 2 # max: n-1, number of intervals not drawn between wings
+            else :
+                n               = 2
+                clearSegments   = 1
+            # end if tailVariant
+            
+            spacing         = 0.55 # spacing between lines default 0.5
+            
             reversdPointsList = newPointsList.copy()
             reversdPointsList.reverse()
             
-            n = 2 # number of wings (2 - 5)
-            tailLength = (2.0 * strokeWidth + tailSize / 2.5 + 1.0) * float(n-1) / 2.0
+            tailLength = (2.0 * strokeWidth + tailSize / 2.5 + 1.0) * float(n-1) * spacing
             
-            # tailCutDistance unused
             newPointsList, tailLength, tailCutDistance = shortenSpline(reversdPointsList, tailLength, 0.0, 0.0, deltaT)
             
             cutX, cutY = newPointsList[-1]
             tanX, tanY = newPointsList[-2]
             
-            tailAngle = math.atan( ( cutY - tanY ) / ( cutX - tanX ) )
-            if cutX - tanX < 0.0 :
-                tailAngle += math.pi # invert from atan result
-            # end if
+            tailAngle = math.atan2( cutY - tanY, cutX - tanX )
             
-            clearSegments = 1 # max: n-1, number of intervals not drawn between wings
             patchReduction = 1.0 - float(clearSegments) / float(n-1)
             patchSize = tailLength * patchReduction
             
@@ -625,7 +687,7 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
         # stroke the body
         # ---------------
         
-        if arrowHeadOnly == False and arrowTailOnly == False :
+        if drawShaft == True :
             
             sourceDrawable.edit_stroke_item(newPath)
         
@@ -636,7 +698,7 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
         # fill or stroke the arrowhead
         # ----------------------------
         
-        if not ( arrowHeadOnly == False and arrowTailOnly == True ) : # then we draw head
+        if drawHead == True : # then we draw head
             
             if arrowStyle == "filled" :
                 
@@ -660,8 +722,7 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
         # fill or stroke the arrow tail
         # -----------------------------
         
-        if tailType != "none" and not ( arrowTailOnly == False 
-                                        and arrowHeadOnly == True ) : # then we draw tail
+        if tailType != "none" and drawTail == True : # then we draw tail
             
             if tailStyle == "filled" and tailType != "crossbar" :
                 
@@ -694,8 +755,10 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
             
         # end if
         
-    # END OF MAIN LOOP
+    # end for flatPointsList
+    
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # END OF MAIN LOOP
     
     
     # crop if new layer
@@ -729,6 +792,7 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
     elif sourceDrawable.is_channel() or sourceDrawable.is_layer_mask() :
         monImage.set_selected_channels([sourceDrawable])
     
+    monImage.thaw_paths()
     Gimp.context_pop()
     monImage.undo_group_end()
     
@@ -869,26 +933,21 @@ def buildBullet(monImage, oriX, oriY, tailSize) :
 #*************************************************************************************
 
 
-def buildFeather(monImage, tailWidth, anchorX, anchorY, tailAngle) :
+def buildFeather(monImage, anchorX, anchorY, tailAngle, tailLength, wingAngle, wingLength, sideLength) :
     
-    tailWidth /= 2.0
-    wingAngle = math.pi / 4.0
-    lengthRatio = 2.0
-    tailLength = lengthRatio * tailWidth
-    wingLength = tailWidth / math.cos(wingAngle)
-    
+    # get the points coordinates, in a convenient order
     point1X = anchorX + wingLength * math.cos(tailAngle + wingAngle)
     point1Y = anchorY + wingLength * math.sin(tailAngle + wingAngle)
-    point2X = point1X + tailLength * math.cos(tailAngle)
-    point2Y = point1Y + tailLength * math.sin(tailAngle)
+    point2X = point1X + sideLength * math.cos(tailAngle)
+    point2Y = point1Y + sideLength * math.sin(tailAngle)
     
     point3X = anchorX + tailLength * math.cos(tailAngle)
     point3Y = anchorY + tailLength * math.sin(tailAngle)
     
     point5X = anchorX + wingLength * math.cos(tailAngle - wingAngle)
     point5Y = anchorY + wingLength * math.sin(tailAngle - wingAngle)
-    point4X = point5X + tailLength * math.cos(tailAngle)
-    point4Y = point5Y + tailLength * math.sin(tailAngle)
+    point4X = point5X + sideLength * math.cos(tailAngle)
+    point4Y = point5Y + sideLength * math.sin(tailAngle)
     
     featherPoints = [
                     anchorX,
@@ -1114,17 +1173,7 @@ def designPath(arrowStyle, strokeWidth, pointsList, arrowLength, axisLength, har
     # determine the path angle at cut point
     # ----------------------------------------
     
-    if cutX == tanX and cutY > tanY :
-        endAngle = math.pi * 0.5
-    elif cutX == tanX and cutY < tanY :
-        endAngle = math.pi * 1.5
-    else :
-        endAngle = math.atan( ( cutY - tanY ) / ( cutX - tanX ) )
-    # end if
-    
-    if cutX < tanX :
-        endAngle += math.pi # invert from atan result
-    # end if
+    endAngle = math.atan2( cutY - tanY, cutX - tanX )
     
     # anchor point of the arrowhead
     
@@ -1191,8 +1240,8 @@ def shortenSpline(pointsList, axisLength, cutDistance, tipProtruding, deltaT) :
     lastP = pointsList[-1]
     targetLength = axisLength + cutDistance + tipProtruding
     
-    counter = 0                 # debug
-    time1 = time.perf_counter() # time debug
+    # counter = 0                 # debug
+    # time1 = time.perf_counter() # time debug
     
     # deltaL = 0.0 # fallback
     
@@ -1203,7 +1252,7 @@ def shortenSpline(pointsList, axisLength, cutDistance, tipProtruding, deltaT) :
         deltaL = distance(lastP, currentP)
         cumulDist += deltaL
         lastP = currentP
-        counter += 1
+        # counter += 1 # debug
         
     # end while
     
